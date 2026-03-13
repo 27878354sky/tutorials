@@ -69,6 +69,11 @@ parser MyParser(packet_in packet,
          *   2) If hdr.ethernet.etherType == TYPE_IPV4 -> parse IPv4
          *   3) Otherwise -> transition accept
          */
+         packet.extract(hdr.ethernet);
+            transition select(hdr.ethernet.etherType) {
+                TYPE_IPV4: parse_ipv4;
+                default: accept;
+            }
         transition accept;
     }
 }
@@ -125,6 +130,11 @@ control MyIngress(inout headers hdr,
               - (optionally) set hdr.ethernet.srcAddr to the switch MAC for 'port'
               - adjust IPv4 TTL and checksums as needed
         */
+        standard_metadata.egress_spec = port;
+        hdr.ethernet.dstAddr = dstAddr;
+        hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
+        hdr.ipv4.hdrChecksum = ipv4_checksum(hdr.ipv4);
+
     }
 
     /*********************************************************************
@@ -152,7 +162,9 @@ control MyIngress(inout headers hdr,
          *      if (hdr.ipv4.isValid()) { ipv4_lpm.apply(); }
          *    This skeleton currently applies unconditionally for the exercise.
          */
-        ipv4_lpm.apply();
+        if (hdr.ipv4.isValid()) {
+            ipv4_lpm.apply();
+        }
     }
 }
 
