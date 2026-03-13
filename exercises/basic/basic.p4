@@ -63,25 +63,24 @@ parser MyParser(packet_in packet,
                 inout standard_metadata_t standard_metadata) {
 
     state start {
-        /* TODO: add parser logic
-         * Suggested outline:
-         *   1) Extract Ethernet: packet.extract(hdr.ethernet);
-         *   2) If hdr.ethernet.etherType == TYPE_IPV4 -> parse IPv4
-         *   3) Otherwise -> transition accept
-         */
-         packet.extract(hdr.ethernet);
-            transition select(hdr.ethernet.etherType) {
-                TYPE_IPV4: parse_ipv4;
-                default: accept;
-            }
-    state parse_ipv4 {
+        transition parse_ethernet;
+    }
 
+    state parse_ethernet {
+        packet.extract(hdr.ethernet);
+        transition select(hdr.ethernet.etherType) {
+            TYPE_IPV4: parse_ipv4;
+            default: accept;
+        }
+    }
+
+    state parse_ipv4 {
         packet.extract(hdr.ipv4);
         transition accept;
     }
-        
-    }
+
 }
+
 
 
 /*************************************************************************
